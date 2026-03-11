@@ -1,0 +1,44 @@
+variant_id: '20'
+theme: Праздники (Nager.Date) - Германия (DE)
+source_type: nager_holidays
+entity:
+  country_code: DE
+  country_name: Германия
+  year: 2025
+api:
+  base_url: https://date.nager.at/api/v3/PublicHolidays
+  method: GET
+  request_template: /{year}/{countryCode}
+  notes: Вернется список праздников. Можно сделать витрину по месяцам и по типам праздников.
+normalized_schema:
+- name: date
+  type: date
+  desc: Дата праздника.
+- name: local_name
+  type: string
+  desc: Локальное название.
+- name: name
+  type: string
+  desc: Название на английском.
+- name: country_code
+  type: string
+  desc: Код страны.
+- name: types
+  type: string[]
+  desc: Типы праздника (может быть массив).
+- name: global
+  type: bool
+  desc: Глобальный/региональный (если есть).
+kpis:
+- Количество праздников по месяцам.
+- Количество праздников по типам.
+- Доля праздников, попадающих на выходные.
+- Число 'длинных выходных' (праздник в Пн или Пт).
+dq_rules:
+- date не NULL и уникальна для страны+года (возможны региональные исключения - объяснить).
+- local_name и name не пустые.
+- country_code соответствует варианту.
+dashboard_questions:
+- В какие месяцы больше всего праздников?
+- Как часто праздники попадают на выходные?
+- Какие типы праздников доминируют?
