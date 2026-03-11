@@ -10,10 +10,8 @@ def load_config(config_path):
         return yaml.safe_load(f)
 
 def run_extract(config_path):
-    # 1. Загружаем настройки из твоего variant_20.yml
     config = load_config(config_path)
     
-    # Собираем URL: https://date.nager.at/api/v3/PublicHolidays/2025/DE
     base_url = config['api']['base_url']
     country = config['entity']['country_code']
     year = config['entity']['year']
@@ -22,17 +20,13 @@ def run_extract(config_path):
     print(f"Начинаю выгрузку данных из API: {url}")
     
     try:
-        # 2. Делаем запрос к API
         response = requests.get(url, timeout=10)
-        response.raise_for_status()  # Если будет ошибка 404 или 500, код упадет здесь с пояснением
+        response.raise_for_status() 
         data = response.json()
         
-        # 3. Готовим папку для сохранения (data/raw)
-        # Мы идем на два уровня вверх от файла или просто от корня проекта
         out_dir = os.path.join("data", "raw")
         os.makedirs(out_dir, exist_ok=True)
         
-        # 4. Сохраняем файл с меткой времени
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         file_path = os.path.join(out_dir, f"holidays_{country}_{year}_{timestamp}.json")
         
@@ -46,9 +40,9 @@ def run_extract(config_path):
         print(f"Произошла ошибка при выгрузке: {e}")
 
 if __name__ == "__main__":
-    # Этот блок позволяет запускать скрипт из терминала с аргументом --config
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, required=True)
     args = parser.parse_args()
     
+
     run_extract(args.config)
