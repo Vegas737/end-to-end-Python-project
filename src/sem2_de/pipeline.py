@@ -25,7 +25,7 @@ def run_step(command, step_name):
     print(f"--- Запуск этапа: {step_name} ---")
     result = subprocess.run(command, shell=True)
     if result.returncode != 0:
-        print(f"❌ Ошибка на этапе {step_name}")
+        print(f" Ошибка на этапе {step_name}")
         return False
     return True
 
@@ -39,16 +39,16 @@ def main():
     current_year = 2025 
     
     if args.mode == "full":
-        print("🧹 Режим FULL: игнорируем старое состояние.")
+        print(" Режим FULL: игнорируем старое состояние.")
         state = {"last_year": 0, "status": "none"}
     else:
         state = load_state()
-        print(f"🚀 Режим INCREMENTAL. Watermark: {state.get('last_year')}")
+        print(f" Режим INCREMENTAL. Watermark: {state.get('last_year')}")
 
     is_done = state.get("last_year") >= current_year and state.get("status") == "success"
     
     if is_done and args.mode == "incremental":
-        print(f"⏩ Год {current_year} уже успешно обработан. Пропускаю Extract.")
+        print(f" Год {current_year} уже успешно обработан. Пропускаю Extract.")
     else:
         if not run_step(f"{PYTHON_PATH} src/sem2_de/extract.py --config {args.config}", "Extract"):
             return
@@ -67,7 +67,7 @@ def main():
         "mode": args.mode
     }
     save_state(new_state)
-    print(f"✅ Пайплайн завершен успешно! Состояние (watermark) обновлено до {current_year}.")
+    print(f" Пайплайн завершен успешно! Состояние (watermark) обновлено до {current_year}.")
 
 if __name__ == "__main__":
     main()
