@@ -1,0 +1,27 @@
+[
+    {
+        "check": "table_not_empty",
+        "status": "PASS",
+        "details": "Rows: 20"
+    },
+    {
+        "check": "no_null_dates",
+        "status": "PASS",
+        "details": "All dates must be present"
+    },
+    {
+        "check": "unique_holidays",
+        "status": "PASS",
+        "details": "Business key (date + name) check"
+    },
+    {
+        "check": "year_is_2025",
+        "status": "PASS",
+        "details": "Data should only contain 2025 holidays"
+    },
+    {
+        "check": "only_public_holidays",
+        "status": "PASS",
+        "details": "Unexpected holiday categories found"
+    }
+]
