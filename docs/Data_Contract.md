@@ -1,3 +1,11 @@
+# Data Contract: German Holidays Pipeline
+**Contract Version:** 0.1  
+**Status:** Active  
+**Owner:** Vegas737  
+**Timezone:** UTC  
+**Naming Convention:** snake_case  
+---
+
 ### Таблица праздников в Германии.
 **Зерно таблицы:** Одна строка = один праздничный день в Германии.
 **Путь к файлу:** `data/normalized/variant_20/YYYY-MM-DD_HH-MM-SS_holidays_germany.csv`
