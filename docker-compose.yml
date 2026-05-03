@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: analytics
+      POSTGRES_USER: student
+      POSTGRES_PASSWORD: student_pw
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  metabase:
+    image: metabase/metabase:v0.46.6
+    platform: linux/amd64
+    ports:
+      - "3000:3000"
+    environment:
+      - MB_JETTY_PORT=3000
+
+volumes:
+  pgdata:
+  metabase_data:
