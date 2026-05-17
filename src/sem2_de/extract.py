@@ -24,7 +24,7 @@ def run_extract(config_path):
         response.raise_for_status() 
         data = response.json()
         
-        out_dir = os.path.join("data", "raw")
+        out_dir = "/opt/airflow/data/raw"
         os.makedirs(out_dir, exist_ok=True)
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
