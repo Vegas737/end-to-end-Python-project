@@ -1,65 +1,86 @@
+import argparse
 import pandas as pd
 import json
 import os
-import glob
 
-def run_dq_checks():
-    folder_path = 'data/normalized/variant_20/'
-    files = glob.glob(os.path.join(folder_path, "*.csv"))
+def run_dq_checks(run_date):
+    print(f"--- Этап Data Quality: Проверка периода {run_date} ---")
     
-    if not files:
-        return [{"check": "file_exists", "status": "FAIL", "details": "No CSV files found"}]
+    input_file = f'/opt/airflow/data/normalized/normalized_{run_date}.csv'
     
-    latest_file = max(files, key=os.path.getctime)
-    df = pd.read_csv(latest_file)
+    if not os.path.exists(input_file):
+        print(f"❌ Файл {input_file} не найден!")
+        return False
     
-    if 'holiday_date' in df.columns:
-        df = df.rename(columns={'holiday_date': 'date'})
-    df['date'] = pd.to_datetime(df['date'])
-
+    df = pd.read_csv(input_file)
+    
+    if 'date' in df.columns:
+        df['date'] = pd.to_datetime(df['date'])
+    
     report = []
+    has_fail = False
 
     is_not_empty = len(df) > 0
+    status_empty = "PASS" if is_not_empty else "FAIL"
+    if not is_not_empty: has_fail = True
     report.append({
         "check": "table_not_empty",
-        "status": "PASS" if is_not_empty else "FAIL",
-        "details": f"Rows: {len(df)}"
+        "status": status_empty,
+        "details": f"Rows count: {len(df)}"
     })
 
-    no_null_dates = df['date'].notna().all()
-    report.append({
-        "check": "no_null_dates",
-        "status": "PASS" if no_null_dates else "FAIL",
-        "details": "All dates must be present"
-    })
+    if not df.empty:
+        no_null_dates = df['date'].notna().all()
+        status_dates = "PASS" if no_null_dates else "FAIL"
+        if not no_null_dates: has_fail = True
+        report.append({
+            "check": "no_null_dates",
+            "status": status_dates,
+            "details": "All dates must be present"
+        })
 
-    is_unique = not df.duplicated(subset=['date', 'eng_name']).any()
-    report.append({
-        "check": "unique_holidays",
-        "status": "PASS" if is_unique else "FAIL",
-        "details": "Business key (date + name) check"
-    })
+        name_col = 'eng_name' if 'eng_name' in df.columns else (df.columns[1] if len(df.columns) > 1 else df.columns[0])
+        is_unique = not df.duplicated(subset=['date', name_col]).any()
+        status_unique = "PASS" if is_unique else "FAIL"
+        if not is_unique: has_fail = True
+        report.append({
+            "check": "unique_holidays",
+            "status": status_unique,
+            "details": f"Business key check on columns: date + {name_col}"
+        })
 
-    only_2025 = (df['date'].dt.year == 2025).all()
-    report.append({
-        "check": "year_is_2025",
-        "status": "PASS" if only_2025 else "WARNING",
-        "details": "Data should only contain 2025 holidays"
-    })
+        target_year = int(run_date.split('-')[0])
+        correct_year = (df['date'].dt.year == target_year).all()
+        report.append({
+            "check": f"year_is_{target_year}",
+            "status": "PASS" if correct_year else "WARNING",
+            "details": f"Data contains unexpected years for run period {target_year}"
+        })
 
-    all_public = (df['category'] == 'Public').all()
-    report.append({
-        "check": "only_public_holidays",
-        "status": "PASS" if all_public else "WARNING",
-        "details": "Unexpected holiday categories found"
-    })
-
-    os.makedirs('data', exist_ok=True)
-    with open('data/dq_report.json', 'w', encoding='utf-8') as f:
+    os.makedirs('/opt/airflow/data/reports', exist_ok=True)
+    report_path = f'/opt/airflow/data/reports/dq_report_{run_date}.json'
+    with open(report_path, 'w', encoding='utf-8') as f:
         json.dump(report, f, indent=4, ensure_ascii=False)
     
-    print(f"✅ DQ Report generated for: {os.path.basename(latest_file)}")
-    return report
+    print(f"📋 DQ Report сохранен в: {report_path}")
+    
+    for check in report:
+        print(f"[{check['status']}] {check['check']}: {check['details']}")
+        
+    if has_fail:
+        print("❌ Критическая ошибка контроля качества! Остановка пайплайна.")
+        return False
+        
+    print("✅ Все критические проверки качества пройдены успешно!")
+    return True
 
 if __name__ == "__main__":
-    run_dq_checks()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, required=True)
+    parser.add_argument("--date", type=str, required=True)
+    args = parser.parse_args()
+
+    if run_dq_checks(args.date):
+        exit(0)
+    else:
+        exit(1) 
