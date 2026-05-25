@@ -11,22 +11,22 @@ with DAG(
 
     extract_task = BashOperator(
         task_id="extract_data",
-        bash_command="python /opt/airflow/src/sem2_de/extract.py --config /opt/airflow/configs/variant_20.yml",
+        bash_command="python /opt/airflow/src/sem2_de/extract.py --config /opt/airflow/configs/variant_20.yml --date '{{ ds }}'",
     )
 
     transform_task = BashOperator(
         task_id="transform_data",
-        bash_command="python /opt/airflow/src/sem2_de/transform.py --config /opt/airflow/configs/variant_20.yml",
-    )
-
-    load_task = BashOperator(
-        task_id="load_to_postgres",
-        bash_command="python /opt/airflow/src/sem2_de/load.py --config /opt/airflow/configs/variant_20.yml",
+        bash_command="python /opt/airflow/src/sem2_de/transform.py --config /opt/airflow/configs/variant_20.yml --date '{{ ds }}'",
     )
 
     dq_task = BashOperator(
         task_id="data_quality_check",
-        bash_command="python /opt/airflow/src/sem2_de/dq.py --config /opt/airflow/configs/variant_20.yml",
+        bash_command="python /opt/airflow/src/sem2_de/dq.py --config /opt/airflow/configs/variant_20.yml --date '{{ ds }}'",
     )
 
-    extract_task >> transform_task >> load_task >> dq_task
+    load_task = BashOperator(
+        task_id="load_to_postgres",
+        bash_command="python /opt/airflow/src/sem2_de/load.py --config /opt/airflow/configs/variant_20.yml --date '{{ ds }}'",
+    )
+
+    extract_task >> transform_task >> dq_task >> load_task
