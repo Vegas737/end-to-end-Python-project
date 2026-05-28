@@ -1,5 +1,4 @@
-# end-to-end-Python-project
-Команды запуска extract:
-1)   $env:PYTHONPATH = "src"
-2)   python -m sem2_de.extract --config configs/variant_20.yml
-После успешного выполнения команды в папке data/raw/ должен появиться JSON-файл с названием формата holidays_DE_2025_(дата)_(время).json, содержащий список праздников.
+## Как запустить проект
+1. Поднимите контейнеры: `docker-compose up -d`
+2. Запустите пайплайн в Airflow (`localhost:8080`), чтобы наполнить базу.
+3. Сгенерируйте отчет ИИ: `python src/sem2_de/report_llm.py`
