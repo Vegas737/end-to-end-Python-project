@@ -11,3 +11,5 @@ sqlalchemy
 psycopg2-binary
 scikit-learn
 seaborn
+python-dotenv
+requests
